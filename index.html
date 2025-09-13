@@ -55,10 +55,10 @@
   /* Google Sites iframe friendly container */
   #couponsContainer {
     margin: 0 auto;
-    padding: 0 5px;
+    padding: 0 6px;
     display: flex;
     flex-direction: column;
-    gap: 2mm 0;
+    gap: 2.5mm 0;
     align-items: flex-start;
     max-width: 794px; /* Approx A4 width in pixels */
     width: 100%;
@@ -68,7 +68,7 @@
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 2mm 3mm;
+    gap: 2.5mm 1.5mm; /* horizontal gap halved */
     width: 100%;
     margin: 0 0 2mm 0;
     page-break-inside: avoid;
@@ -77,9 +77,9 @@
     background: #fff;
     border: 3.5px solid #222b44;
     border-radius: 8px;
-    width: 23%; /* 4 coupons per row responsively */
-    min-width: 140px;
-    max-width: 190px;
+    width: 25.5%; /* Slightly more width than before */
+    min-width: 160px; /* increase min width */
+    max-width: 200px;
     height: 120px;
     box-sizing: border-box;
     padding: 8px 6px;
@@ -148,14 +148,14 @@
     }
     #couponsContainer {
       margin: 0 auto;
-      padding: 0;
+      padding: 0 6px;
       gap: 1.5mm 0;
-      width: 794px; /* Exact A4 width */
+      width: 794px;
       justify-content: space-between;
       box-sizing: border-box;
     }
     .row {
-      gap: 1.5mm 3mm;
+      gap: 1.5mm 1.5mm;
       margin: 0 0 1.5mm 0;
       flex-wrap: wrap;
       page-break-inside: avoid;
@@ -166,7 +166,7 @@
       box-shadow: none !important;
       margin-bottom: 0;
       page-break-inside: avoid;
-      width: 23%;
+      width: 25.5%;
       min-width: unset;
       max-width: unset;
       height: 115px;
