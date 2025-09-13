@@ -51,14 +51,17 @@
     border-radius: 4px;
     cursor: pointer;
   }
+
+  /* Google Sites iframe friendly container */
   #couponsContainer {
-    margin: 0;
-    padding: 0;
+    margin: 0 auto;
+    padding: 0 5px;
     display: flex;
     flex-direction: column;
     gap: 2mm 0;
     align-items: flex-start;
-    width: 100vw;
+    max-width: 794px; /* Approx A4 width in pixels */
+    width: 100%;
     box-sizing: border-box;
   }
   .row {
@@ -74,9 +77,9 @@
     background: #fff;
     border: 3.5px solid #222b44;
     border-radius: 8px;
-    min-width: unset;
-    max-width: unset;
-    width: calc((210mm - 20mm) / 4);
+    width: 23%; /* 4 coupons per row responsively */
+    min-width: 140px;
+    max-width: 190px;
     height: 120px;
     box-sizing: border-box;
     padding: 8px 6px;
@@ -144,10 +147,10 @@
       display: none;
     }
     #couponsContainer {
-      margin: 0;
+      margin: 0 auto;
       padding: 0;
       gap: 1.5mm 0;
-      width: 100%;
+      width: 794px; /* Exact A4 width */
       justify-content: space-between;
       box-sizing: border-box;
     }
@@ -163,7 +166,7 @@
       box-shadow: none !important;
       margin-bottom: 0;
       page-break-inside: avoid;
-      width: calc((210mm - 20mm) / 4);
+      width: 23%;
       min-width: unset;
       max-width: unset;
       height: 115px;
