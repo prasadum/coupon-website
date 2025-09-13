@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Mess Coupons</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #fcfcfc;
+    margin: 20px;
+  }
+  form {
+    max-width: 600px;
+    margin: 0 auto 24px auto;
+    background: #fff;
+    padding: 20px 24px 12px 24px;
+    border: 2.5px solid #2d5ca6;
+    border-radius: 11px;
+  }
+  label {
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+    letter-spacing: 0.5px;
+  }
+  input[type=number], input[type=date], input[type=text] {
+    width: 100%;
+    padding: 9px;
+    margin: 8px 0 12px 0;
+    font-size: 16px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1.5px solid #b5d3f7;
+  }
+  button {
+    width: 100%;
+    margin-top: 8px;
+    padding: 13px 0;
+    background: #005bb5;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  #couponsContainer {
+    margin-top: 21px;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5mm 0;
+    align-items: flex-start;
+  }
+  .row {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 2.5mm 3.5mm;
+    width: 100%;
+    margin-bottom: 1.5mm;
+    page-break-inside: avoid;
+  }
+  .coupon {
+    background: #fff;
+    border: 3.5px solid #222b44;
+    border-radius: 8px;
+    min-width: 50mm;
+    max-width: 58mm;
+    width: calc((210mm - 30mm) / 4);
+    height: 125px;
+    box-sizing: border-box;
+    padding: 12px 8px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-family: Arial, sans-serif;
+    font-weight: 700;
+    letter-spacing: 1.1px;
+    text-align: center;
+    box-shadow: 2px 2px 9px #ececec;
+    position: relative;
+  }
+  .coupon-seal {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    border: 3px solid #005bb5;
+    border-radius: 50%;
+    width: 55px;
+    height: 55px;
+    color: #005bb5;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1.4px;
+    text-align: center;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 5px;
+    box-sizing: border-box;
+    text-transform: uppercase;
+  }
+  .coupon-meal {
+    font-size: 15px;
+    color: #b40d10;
+    margin-bottom: 6px;
+    padding-bottom: 0;
+    text-transform: uppercase;
+  }
+  .coupon-footer {
+    font-size: 13px;
+    color: #333;
+    letter-spacing: 0.8px;
+    margin-top: 4px;
+  }
+  .coupon-name, .security-code {
+    font-size: 14px;
+    color: #207551;
+    margin-top: 5px;
+    text-transform: uppercase;
+  }
+  .security-code {
+    color: #b40d10;
+    font-family: 'Courier New', monospace;
+  }
+  @media print {
+    body {
+      background: #fff;
+      margin: 10mm 15mm;
+    }
+    form {
+      display: none;
+    }
+    #couponsContainer {
+      margin: 0;
+      gap: 1.5mm 0;
+      justify-content: flex-start;
+    }
+    .row {
+      gap: 1.5mm 2mm;
+      margin-bottom: 1.5mm;
+      flex-wrap: wrap;
+      page-break-inside: avoid;
+    }
+    .coupon {
+      box-shadow: none !important;
+      margin-bottom: 0;
+      page-break-inside: avoid;
+      width: calc((210mm - 30mm) / 4);
+      min-width: unset;
+      max-width: unset;
+      height: 115px;
+      padding: 10px 6px;
+      font-size: 13px;
+    }
+    .coupon-meal {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .coupon-name, .security-code {
+      font-size: 13px;
+    }
+  }
+</style>
+</head>
+<body>
+<form id="tokensForm">
+  <label for="tokens">Number of Trainees (each gets coupons for each date in range):</label>
+  <input type="number" id="tokens" min="1" max="20" required placeholder="Enter number of trainees (max 20)" />
+  <label for="startDate">Start Date:</label>
+  <input type="date" id="startDate" required />
+  <label for="endDate">End Date:</label>
+  <input type="date" id="endDate" required />
+  <button type="submit">Next: Add Names</button>
+</form>
+
+<form id="namesForm" style="display:none;"></form>
+<div id="couponsContainer"></div>
+
+<script>
+const MEALS = ["Breakfast", "Lunch", "Dinner"];
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzsqJNQVukzPmM1Ge78xmX9mh-uPSKJJSfAV-mEsdUO2PeNx10y-zrOMU1SBrmaBV_81g/exec';
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const day = ('0' + d.getDate()).slice(-2);
+  const month = ('0' + (d.getMonth() + 1)).slice(-2);
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+function getMonthAbbreviation(dateStr) {
+  const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  const d = new Date(dateStr);
+  return months[d.getMonth()];
+}
+
+function generateCode(len=6) {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for(let i=0; i<len; i++) {
+    code += chars.charAt(Math.floor(Math.random()*chars.length));
+  }
+  return code.toUpperCase();
+}
+
+function getDateRange(startDate, endDate) {
+  const dates = [];
+  let currentDate = new Date(startDate);
+  const stopDate = new Date(endDate);
+  while(currentDate <= stopDate) {
+    dates.push(new Date(currentDate));
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  return dates;
+}
+
+function logCoupon(date,name,meal,code,serial) {
+  fetch(SHEETS_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({date: date, name: name.toUpperCase(), meal: meal.toUpperCase(), securityCode: code, serial: serial})
+  }).catch(e => console.error('Logging error:', e));
+}
+
+document.getElementById('tokensForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const tokens = parseInt(document.getElementById('tokens').value);
+  const startDateRaw = document.getElementById('startDate').value;
+  const endDateRaw = document.getElementById('endDate').value;
+  if(!startDateRaw || !endDateRaw) {
+    alert('Please select both start and end dates');
+    return;
+  }
+  if(new Date(endDateRaw) < new Date(startDateRaw)) {
+    alert('End date cannot be before start date');
+    return;
+  }
+  if(isNaN(tokens) || tokens < 1 || tokens > 20){
+    alert("Enter valid number of trainees (1 to 20)");
+    return;
+  }
+  this.style.display = 'none';
+
+  const namesForm = document.getElementById('namesForm');
+  namesForm.innerHTML = '<h2 style="text-align:center;color:#005bb5;">Enter Trainee Names</h2>';
+  for(let i=0; i < tokens; i++) {
+    namesForm.innerHTML += `
+      <label for="trainee${i}" style="font-weight:700;">Trainee #${i+1}:</label>
+      <input id="trainee${i}" type="text" required placeholder="Name of Trainee" style="margin-bottom:12px;" />
+    `;
+  }
+  namesForm.innerHTML += '<button type="submit">Generate & Print Coupons</button>';
+  namesForm.style.display = 'block';
+  window.scrollTo(0,0);
+});
+
+document.getElementById('namesForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const namesInputs = Array.from(document.querySelectorAll('#namesForm input[type=text]'));
+  const names = namesInputs.map(i => i.value.trim().toUpperCase());
+  if(names.some(n => !n)) {
+    alert('Please enter all trainee names');
+    return;
+  }
+
+  this.style.display = 'none';
+  const container = document.getElementById('couponsContainer');
+  container.innerHTML = '';
+
+  const startDateRaw = document.getElementById('startDate').value;
+  const endDateRaw = document.getElementById('endDate').value;
+  const dates = getDateRange(startDateRaw, endDateRaw);
+
+  let serialCount = 1;
+
+  names.forEach(name => {
+    dates.forEach(dateObj => {
+      const dateStr = formatDate(dateObj.toISOString());
+      const monthAbbr = getMonthAbbreviation(dateObj.toISOString());
+
+      const row = document.createElement('div');
+      row.classList.add('row');
+
+      MEALS.forEach(meal => {
+        const code = generateCode();
+        const serial = `${monthAbbr}${serialCount.toString().padStart(3,'0')}`;
+
+        const coupon = document.createElement('div');
+        coupon.classList.add('coupon');
+        coupon.innerHTML = `
+          <div class="coupon-seal">NSTI CLT MESS</div>
+          <div class="coupon-meal">${meal}</div>
+          <div class="coupon-footer">Date: ${dateStr}</div>
+          <div class="coupon-name">${name}</div>
+          <div class="security-code">Code: ${code}</div>
+          <div class="coupon-footer">Serial: ${serial}</div>
+        `;
+        row.appendChild(coupon);
+
+        logCoupon(dateStr, name, meal, code, serial);
+        serialCount++;
+      });
+
+      container.appendChild(row);
+    });
+  });
+
+  setTimeout(()=>window.print(), 300);
+  window.scrollTo(0,0);
+});
+</script>
+</body>
+</html>
